@@ -2,7 +2,7 @@
 pipeline {
 
     parameters {
-        string(name: 'environment', defaultValue: 'terraform', description: 'Workspace/environment file to use for deployment')
+        string(name: 'branchName', defaultValue: 'main', description: 'Github branch name ')
         booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
 
     }
@@ -24,8 +24,6 @@ pipeline {
         stage('Plan') {
             steps {
                 sh 'terraform init -input=false'
-                sh 'terraform workspace new ${environment}'
-                sh 'terraform workspace select ${environment}'
                 sh 'terraform plan -input=false -out tfplan'
                 sh 'terraform show -no-color tfplan > tfplan.txt'
             }
@@ -42,7 +40,7 @@ pipeline {
                script {
                     def plan = readFile 'tfplan.txt'
                     input message: "Do you want to apply the plan?",
-                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    parameters: [text(name: 'Plan', description: 'Please press Abort or Proceed', defaultValue: 'Please checkout the plan in the Console output')]
                }
            }
        }
