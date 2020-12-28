@@ -20,16 +20,6 @@ pipeline {
             }
 
     stages {
-        stage('Checkout') {
-            steps {
-                 script{
-                        dir("terraform")
-                        {
-                            git "https://github.com/AJakkam38/aws-infrastructure-automation.git"
-                        }
-                    }
-                }
-            }
 
         stage('Plan') {
             steps {
