@@ -1,6 +1,4 @@
 
-// Declarative Pipeline
-
 pipeline {
 
     parameters {
@@ -9,62 +7,61 @@ pipeline {
 
     }
 
-   agent any
+
+     environment {
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+   agent  any
         options {
                 timestamps ()
                 ansiColor('xterm')
             }
 
     stages {
-
         stage('Checkout') {
             steps {
-                script{
-                    dir("terraform")
-                    {
-                        git "git@github.com:AJakkam38/aws-infrastructure-automation.git"
+                 script{
+                        dir("terraform")
+                        {
+                            git "https://github.com/AJakkam38/aws-infrastructure-automation.git"
+                        }
                     }
                 }
             }
-        }
-        
+
         stage('Plan') {
             steps {
-                withCredentials([[
-                    $class: 'AmazonWebServicesCredentialsBinding', 
-                    accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
-                    credentialsId: 'AWS_CREDENTIALS', 
-                    secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                        
-                        sh 'terraform init -input=false'
-                        sh 'terraform workspace new ${environment}'
-                        sh 'terraform workspace select ${environment}'
-                        sh 'terraform plan -input=false -out tfplan'
-                        sh 'terraform show -no-color tfplan > tfplan.txt'
+                sh 'terraform init -input=false'
+                sh 'terraform workspace new ${environment}'
+                sh 'terraform workspace select ${environment}'
+                sh 'terraform plan -input=false -out tfplan'
+                sh 'terraform show -no-color tfplan > tfplan.txt'
+            }
+        }
 
-                        stage('Approval') {
-                            when {
-                                not {
-                                    equals expected: true, actual: params.autoApprove
-                                }
-                            }
+        stage('Approval') {
+           when {
+               not {
+                   equals expected: true, actual: params.autoApprove
+               }
+           }
 
-                            steps {
-                                script {
-                                    def plan = readFile 'tfplan.txt'
-                                    input message: "Do you want to apply the plan?",
-                                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-                                }
-                            }
-                        }
+           steps {
+               script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+               }
+           }
+       }
 
-                        stage('Apply') {
-                            steps {
-                                sh 'terraform apply -input=false tfplan'
-                            }
-                        }
-                }
+        stage('Apply') {
+            steps {
+                sh 'terraform apply -input=false tfplan'
             }
         }
     }
-}
+
+  }
