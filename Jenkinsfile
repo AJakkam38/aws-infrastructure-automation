@@ -40,7 +40,7 @@ pipeline {
                script {
                     def plan = readFile 'tfplan.txt'
                     input message: "Do you want to apply the plan?",
-                    parameters: [text(name: 'Plan', description: 'Please press Abort or Proceed', defaultValue: 'Please checkout the plan in the Console output')]
+                    parameters: [text(name: 'Plan', description: 'Please press Proceed or Abort', defaultValue: 'Please checkout the plan in the Console output')]
                }
            }
        }
