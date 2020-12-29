@@ -26,6 +26,7 @@ resource "aws_dynamodb_table" "terraform_locks" {
     }
 }
 
+/*
 terraform {
   backend "s3" {
       bucket = "aj-dev-terraform-state"
@@ -36,3 +37,4 @@ terraform {
       encrypt = true
   }
 }
+*/
